@@ -1,0 +1,42 @@
+main {
+  oer.api-key = "<secret-key>"
+}
+
+pg {
+  DataSourceProperties {
+    # sslmode = require
+    socketTimeout = 60
+    ApplicationName = "example"
+  }
+
+  PoolName = "pool"
+  JdbcUrl = "jdbc:postgresql://localhost/db"
+  Username = "user"
+  Password = "password"
+
+  schema = "schema"
+
+  MaximumPoolSize = 2
+}
+
+akka {
+  http {
+
+    host-connection-pool {
+      max-connections = 2
+      max-open-requests = 128
+    }
+
+  }
+
+  loggers = ["akka.event.slf4j.Slf4jLogger"]
+  loglevel = "DEBUG"
+  log-dead-letters = 100500
+
+  actor.debug {
+    receive = on
+    autoreceive = on
+    lifecycle = on
+    unhandled = on
+  }
+}

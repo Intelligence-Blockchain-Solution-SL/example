@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="true">
+
+  <property name="LOG_DIR" value="${user.dir}/logs"/>
+  <property name="MAX_HISTORY" value="10"/>
+
+  <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+    <resetJUL>true</resetJUL>
+  </contextListener>
+
+  <!-- CONSOLE ******************************************************************************** -->
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>TRACE</level>
+    </filter>
+    <encoder>
+      <pattern>%highlight([%.-1le]) %yellow(%d{HH:mm:ss.SSS}) %cyan(%-20lo{1}) %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- GENERAL FILE (application.log) ********************************************************* -->
+
+  <!-- rollover: daily, max_size + GZIP -->
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/log-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <maxHistory>${MAX_HISTORY}</maxHistory>
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+    <append>true</append>
+    <encoder>
+      <pattern>[%.-1le] [%d{HH:mm:ss.SSS}] [%lo{36}] - %msg%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- COPY of FILE for W/E (ThresholdFilter) ************************************************* -->
+
+  <appender name="FILE-WRN_ERR" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>WARN</level>
+    </filter>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>${LOG_DIR}/err-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+      <maxHistory>${MAX_HISTORY}</maxHistory>
+      <cleanHistoryOnStart>true</cleanHistoryOnStart>
+    </rollingPolicy>
+    <append>true</append>
+    <encoder>
+      <pattern>[%.-1le] [%d{HH:mm:ss.SSS}] [%lo{36}] - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <!-- SLACK ********************************************************************************** -->
+
+  <appender name="SLACK" class="com.github.maricn.logback.SlackAppender">
+    <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+      <level>ERROR</level>
+    </filter>
+    <webhookUri>https://hooks.slack.com/services/........./........./........................</webhookUri>
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <pattern>%d{ISO8601} [%t] %lo%n%msg</pattern>
+    </layout>
+    <username>${HOSTNAME}</username>
+    <colorCoding>true</colorCoding>
+    <iconEmoji>:interrobang:</iconEmoji>
+  </appender>
+
+  <!-- ASYNC ********************************************************************************** -->
+
+  <appender name="ASYNC-STDOUT" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="STDOUT"/></appender>
+  <appender name="ASYNC-FILE" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="FILE"/></appender>
+  <appender name="ASYNC-FILE-WRN_ERR" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="FILE-WRN_ERR"/></appender>
+  <appender name="ASYNC-SLACK" class="ch.qos.logback.classic.AsyncAppender"><appender-ref ref="SLACK"/></appender>
+
+  <!-- FILTERS ******************************************************************************** -->
+
+  <logger name="es.ibs" level="TRACE"/>
+  <logger name="akka" level="INFO"/>
+  <logger name="com.typesafe.sslconfig" level="INFO"/>
+  <logger name="org.postgresql" level="INFO"/>
+  <logger name="com.zaxxer" level="INFO"/>
+
+
+  <root level="INFO">
+    <appender-ref ref="ASYNC-STDOUT"/>
+    <appender-ref ref="ASYNC-FILE"/>
+    <appender-ref ref="ASYNC-FILE-WRN_ERR"/>
+    <appender-ref ref="ASYNC-SLACK"/>
+  </root>
+
+</configuration>
